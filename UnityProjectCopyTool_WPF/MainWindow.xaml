@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UnityProjectCopyTool_WPF"
         mc:Ignorable="d"
-        Title="UnityProjectsCopyTool" Height="200" Width="400">
+        Title="UnityProjectsCopyTool" Height="200" Width="400" AllowDrop="True" Drop="Window_DragDrop">
     <Grid Drop="Window_DragDrop">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -13,12 +13,62 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Button x:Name="CopyButton" Content="コピー" HorizontalAlignment="Right" Height="45" VerticalAlignment="Bottom" Width="128" RenderTransformOrigin="0.512,0.165" Click="CopyButton_Click" FontSize="18" VerticalContentAlignment="Center"/>
-        <CheckBox x:Name="IncludePackagesCheckBox" Content="Packagesを含める" HorizontalAlignment="Left" Height="30" Margin="34,92,0,0" VerticalAlignment="Top" Width="144" FontSize="16" Grid.RowSpan="1" VerticalContentAlignment="Center" Padding="4,0,0,0" UseLayoutRounding="True"/>
-        <CheckBox x:Name="OnTopCheckBox" Content="常に最前面表示" HorizontalAlignment="Left" Height="30" Margin="34,115,0,0" VerticalAlignment="Top" Width="144" FontSize="16" Padding="4,0,0,0" VerticalContentAlignment="Center" Click="OnTopCheckBox_Clicked"/>
-        <Button x:Name="OpenFolderDialogButton" Content="･･･" HorizontalAlignment="Left" Height="24" VerticalAlignment="Top" Width="30" FontSize="16" Margin="305,36,0,0" Click="OpenFolderDialogButton_Click"/>
-        <Rectangle HorizontalAlignment="Left" Height="24" Margin="50,36,0,0" Stroke="Black" VerticalAlignment="Top" Width="255" Grid.ColumnSpan="2"/>
-        <TextBox x:Name="SelectFolderAddressTextBox" HorizontalAlignment="Left" Height="24" Margin="34,36,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="271"/>
-
+        <Button x:Name="CopyButton" 
+                Content="コピー" 
+                HorizontalAlignment="Right" 
+                Height="45" 
+                VerticalAlignment="Bottom" 
+                Width="128" 
+                RenderTransformOrigin="0.512,0.165" 
+                Click="CopyButton_Click" 
+                FontSize="18" 
+                VerticalContentAlignment="Center" IsEnabled="False"/>
+        <CheckBox x:Name="IncludePackagesCheckBox" 
+                  Content="Packagesを含める" 
+                  HorizontalAlignment="Left" 
+                  Height="30" 
+                  Margin="34,92,0,0" 
+                  VerticalAlignment="Top" 
+                  Width="144" 
+                  FontSize="16" 
+                  Grid.RowSpan="1" 
+                  VerticalContentAlignment="Center" 
+                  Padding="4,0,0,0" 
+                  UseLayoutRounding="True"/>
+        <CheckBox x:Name="OnTopCheckBox" 
+                  Content="常に最前面表示" 
+                  HorizontalAlignment="Left" 
+                  Height="30" 
+                  Margin="34,115,0,0" 
+                  VerticalAlignment="Top" 
+                  Width="144" 
+                  FontSize="16" 
+                  Padding="4,0,0,0" 
+                  VerticalContentAlignment="Center" 
+                  Click="OnTopCheckBox_Clicked"/>
+        <Button x:Name="OpenFolderDialogButton" 
+                Content="･･･" 
+                HorizontalAlignment="Left" 
+                Height="24" 
+                VerticalAlignment="Top" 
+                Width="30" 
+                FontSize="16" 
+                Margin="305,36,0,0" 
+                Click="OpenFolderDialogButton_Click"/>
+        <Rectangle HorizontalAlignment="Left" 
+                   Height="24" 
+                   Margin="50,36,0,0" 
+                   Stroke="Black" 
+                   VerticalAlignment="Top"
+                   Width="255"
+                   Grid.ColumnSpan="2"/>
+        <TextBox x:Name="SelectFolderAddressTextBox" 
+                 HorizontalAlignment="Left" 
+                 Height="24" 
+                 Margin="34,36,0,0" 
+                 TextWrapping="Wrap" 
+                 Text="" 
+                 VerticalAlignment="Top" 
+                 Width="271" TextChanged="TextBox_TextChanged"/>
     </Grid>
 </Window>

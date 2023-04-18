@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,9 +25,9 @@ namespace UnityProjectCopyTool_WPF
     {
         readonly string[] copyFolderNames =
         {
-            "Assets","Library","ProjectSettings"
+            "Assets","Library","Packages","ProjectSettings"
         };
-        const string packagesStr = "Packages";
+        const int PackagesNumber = 2;
 
         public MainWindow()
         {
@@ -40,6 +41,7 @@ namespace UnityProjectCopyTool_WPF
             // チェックが入っていたら最前面表示する
             Topmost = (bool)OnTopCheckBox.IsChecked;
         }
+
         private void Window_DragDrop(object sender, DragEventArgs e)
         {
             // ドロップされたアイテムがフォルダか判別
@@ -66,58 +68,50 @@ namespace UnityProjectCopyTool_WPF
             }
         }
 
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        private async void CopyButton_Click(object sender, RoutedEventArgs e)
         {
             // Packagesの確認
             bool includePackages = false;
             if (IncludePackagesCheckBox.IsChecked != null)
-            {
-                includePackages = (bool)IncludePackagesCheckBox.IsChecked;
-            }
+            { includePackages = (bool)IncludePackagesCheckBox.IsChecked; }
 
-            string folderPass = SelectFolderAddressTextBox.Text;
-            if (folderPass == null) return;
+            string sourceFolderPass = SelectFolderAddressTextBox.Text;
+            string sourceFolderName = Path.GetFileName(sourceFolderPass);
 
-            // フォルダ名の取得
-            string folderName = Path.GetFileName(folderPass);
-            if (folderName == null) return;
-            // 子フォルダのパスを取得
-            string[] subFoldersPass = Directory.GetDirectories(folderPass);
-
-            // 選択されたフォルダの親フォルダのパスを取得する
-            string parentFolderPath = Directory.GetParent(folderPass).FullName;
-
-            // 新しいフォルダを作成する
-            string newFolderName = $"{folderName}_Copy";
+            // コピー先になるフォルダを作成する
+            string parentFolderPath = Directory.GetParent(sourceFolderPass).FullName;
+            string newFolderName = $"{sourceFolderName}_Copy";
             string newFolderPath = Path.Combine(parentFolderPath, newFolderName);
             Directory.CreateDirectory(newFolderPath);
 
-            foreach (string subFolderPass in subFoldersPass)
+            // 子フォルダのパスを取得
+            string[] subFolderPassArray = Directory.GetDirectories(sourceFolderPass);
+
+            foreach (string subFolderPass in subFolderPassArray)
             {
                 string subFolderName = Path.GetFileName(subFolderPass);
                 foreach (var item in copyFolderNames)
                 {
                     // フォルダ名で識別してコピーする
                     if (subFolderName != item) continue;
+                    if (subFolderName == copyFolderNames[PackagesNumber])
+                    {
+                        if (!includePackages) continue;
+                    }
                     //新しく作成したフォルダにAssets,Library...のコピー
                     string newFolderDirectory = Path.Combine(newFolderPath, subFolderName);
                     Directory.CreateDirectory(newFolderDirectory);
-                    DirectoryCopy(subFolderPass, newFolderDirectory);
-                }
 
-                if (!includePackages) continue;
-                if (subFolderName != packagesStr) continue;
-                string newPackFolderDirectory = System.IO.Path.Combine(newFolderPath, packagesStr);
-                Directory.CreateDirectory(newPackFolderDirectory);
-                DirectoryCopy(subFolderPass, newPackFolderDirectory);
+                     DirectoryCopy(subFolderPass, newFolderDirectory);
+                }
             }
-            FileCopy(folderPass, newFolderPath);
+
+            FileCopy(sourceFolderPass, newFolderPath);
         }
 
         private void DirectoryCopy(string sourcePath, string destinationPath)
         {
             DirectoryInfo sourceDirectory = new DirectoryInfo(sourcePath);
-
             //ディレクトリのコピー（再帰を使用）
             foreach (DirectoryInfo directoryInfo in sourceDirectory.GetDirectories())
             {
@@ -125,8 +119,6 @@ namespace UnityProjectCopyTool_WPF
                 Directory.CreateDirectory(newFolderPath);
                 DirectoryCopy(directoryInfo.FullName, directoryInfo.FullName);
             }
-
-            FileCopy(sourcePath, destinationPath);
         }
 
         private void FileCopy(string sourcePath, string destinationPath)
@@ -135,10 +127,14 @@ namespace UnityProjectCopyTool_WPF
             DirectoryInfo destinationDirectory = new DirectoryInfo(destinationPath);
 
             //ファイルのコピー
-            foreach (FileInfo fileInfo in sourceDirectory.GetFiles())
+            foreach (DirectoryInfo directoryInfo in sourceDirectory.GetDirectories())
             {
-                string fileDirectory = Path.Combine(destinationDirectory.FullName, fileInfo.Name);
-                fileInfo.CopyTo(fileDirectory, true);
+                foreach (FileInfo fileInfo in sourceDirectory.GetFiles())
+                {
+                    string fileDirectory = Path.Combine(destinationDirectory.FullName, fileInfo.Name);
+                    fileInfo.CopyTo(fileDirectory, true);
+                }
+                FileCopy(directoryInfo.FullName, directoryInfo.FullName);
             }
         }
 
@@ -151,5 +147,9 @@ namespace UnityProjectCopyTool_WPF
             return false;
         }
 
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CopyButton.IsEnabled = SelectFolderAddressTextBox.Text != null;
+        }
     }
 }
