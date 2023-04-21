@@ -55,13 +55,6 @@
                 FontSize="16" 
                 Margin="305,36,0,0" 
                 Click="OpenFolderDialogButton_Click"/>
-        <Rectangle HorizontalAlignment="Left" 
-                   Height="24" 
-                   Margin="50,36,0,0" 
-                   Stroke="Black" 
-                   VerticalAlignment="Top"
-                   Width="255"
-                   Grid.ColumnSpan="2"/>
         <TextBox x:Name="SelectFolderAddressTextBox" 
                  HorizontalAlignment="Left" 
                  Height="24" 
