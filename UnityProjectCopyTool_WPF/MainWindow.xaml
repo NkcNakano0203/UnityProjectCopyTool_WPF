@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UnityProjectCopyTool_WPF"
         mc:Ignorable="d"
-        Title="UnityProjectsCopyTool" Height="200" Width="400" AllowDrop="True" Drop="FolderDragDrop" Background="{x:Null}" Icon="/Blenderレンダー 2021_05_07 16_25_18 (2).png">
+        Title="UnityProjectsCopyTool" Height="200" Width="400" AllowDrop="True" Drop="FolderDragDrop" Background="{x:Null}" Icon="/Icon2.png">
     <Grid Drop="FolderDragDrop" Background="White">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
