@@ -21,7 +21,7 @@ namespace UnityProjectCopyTool_WPF
             InitializeComponent();
         }
 
-        private void OnTopCheckBox_Clicked(object sender, RoutedEventArgs e)
+        private void OnTopCheckBoxClicked(object sender, RoutedEventArgs e)
         {
             // 未確定時(null)は止める
             if (OnTopCheckBox.IsChecked == null) return;
@@ -29,10 +29,11 @@ namespace UnityProjectCopyTool_WPF
             Topmost = (bool)OnTopCheckBox.IsChecked;
         }
 
-        private void Window_DragDrop(object sender, DragEventArgs e)
+        private void FolderDragDrop(object sender, DragEventArgs e)
         {
             // ドロップされたアイテムがフォルダか判別
-            bool isFolder = IsDroppedItemFolder(e);
+            bool isFolder = IsDroppedItemFolder(e.Data);
+
             // フォルダ以外は受け付けない
             e.Effects = isFolder ? DragDropEffects.Copy : DragDropEffects.None;
             if (!isFolder) return;
@@ -40,6 +41,15 @@ namespace UnityProjectCopyTool_WPF
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             // ドロップされたフォルダのパスを保持
             SelectFolderAddressTextBox.Text = files[0];
+        }
+
+        private bool IsDroppedItemFolder(IDataObject data)
+        {
+            // ドロップされたアイテムがフォルダか
+            if (!data.GetDataPresent(DataFormats.FileDrop)) return true;
+            if (((string[])data.GetData(DataFormats.FileDrop)).Length == 1) return true;
+            if (Directory.Exists(((string[])data.GetData(DataFormats.FileDrop))[0])) return true;
+            return false;
         }
 
         private void OpenFolderDialogButton_Click(object sender, RoutedEventArgs e)
@@ -51,6 +61,11 @@ namespace UnityProjectCopyTool_WPF
                 // 選択されたフォルダ名を保持
                 SelectFolderAddressTextBox.Text = cofd.FileName;
             }
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CopyButton.IsEnabled = SelectFolderAddressTextBox.Text != null;
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -74,7 +89,6 @@ namespace UnityProjectCopyTool_WPF
 
             // 子フォルダのパスを取得
             string[] subFolderPassArray = Directory.GetDirectories(sourceFolderPass);
-
             foreach (string subFolderPass in subFolderPassArray)
             {
                 string subFolderName = Path.GetFileName(subFolderPass);
@@ -106,48 +120,30 @@ namespace UnityProjectCopyTool_WPF
             MessageBox.Show("コピー完了");
         }
 
-
-        static void CopyDirectory(string sourceDir, string destinationDir)
+        private void CopyDirectory(string sourcePath, string destinationPath)
         {
-            DirectoryInfo dir = new DirectoryInfo(sourceDir);
+            DirectoryInfo sourceDir = new DirectoryInfo(sourcePath);
 
-            if (!dir.Exists) throw new DirectoryNotFoundException($"フォルダが見つからないよ～: {dir.FullName}");
+            if (!sourceDir.Exists) throw new DirectoryNotFoundException($"フォルダが見つからないよ～: {sourceDir.FullName}");
 
-            DirectoryInfo[] dirs = dir.GetDirectories();
-            Directory.CreateDirectory(destinationDir);
+            DirectoryInfo[] dirs = sourceDir.GetDirectories();
+            Directory.CreateDirectory(destinationPath);
 
             // ファイルやフォルダが無かったら飛ばす
             if (dirs.Length != 0)
             {
                 foreach (DirectoryInfo subDir in dirs)
                 {
-                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+                    string newDestinationDir = Path.Combine(destinationPath, subDir.Name);
                     CopyDirectory(subDir.FullName, newDestinationDir);
                 }
             }
-
-            if (dir.GetFiles().Length != 0)
+            if (sourceDir.GetFiles().Length == 0) return;
+            foreach (FileInfo file in sourceDir.GetFiles())
             {
-                foreach (FileInfo file in dir.GetFiles())
-                {
-                    string targetFilePath = Path.Combine(destinationDir, file.Name);
-                    file.CopyTo(targetFilePath);
-                }
+                string targetFilePath = Path.Combine(destinationPath, file.Name);
+                file.CopyTo(targetFilePath);
             }
-        }
-
-        private bool IsDroppedItemFolder(DragEventArgs e)
-        {
-            // ドロップされたアイテムがフォルダか
-            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return true;
-            if (((string[])e.Data.GetData(DataFormats.FileDrop)).Length == 1) return true;
-            if (Directory.Exists(((string[])e.Data.GetData(DataFormats.FileDrop))[0])) return true;
-            return false;
-        }
-
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            CopyButton.IsEnabled = SelectFolderAddressTextBox.Text != null;
         }
     }
 }

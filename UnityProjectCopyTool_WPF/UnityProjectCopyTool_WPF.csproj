@@ -8,7 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Blenderレンダー 2021_05_07 16_25_18 %282%29.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Blenderレンダー 2021_05_07 16_25_18 (2).png" />
   </ItemGroup>
 
 </Project>

@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UnityProjectCopyTool_WPF"
         mc:Ignorable="d"
-        Title="UnityProjectsCopyTool" Height="200" Width="400" AllowDrop="True" Drop="Window_DragDrop">
-    <Grid Drop="Window_DragDrop">
+        Title="UnityProjectsCopyTool" Height="200" Width="400" AllowDrop="True" Drop="FolderDragDrop" Background="{x:Null}" Icon="/Blenderレンダー 2021_05_07 16_25_18 (2).png">
+    <Grid Drop="FolderDragDrop" Background="White">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
@@ -43,9 +43,8 @@
                   VerticalAlignment="Top" 
                   Width="144" 
                   FontSize="16" 
-                  Padding="4,0,0,0" 
                   VerticalContentAlignment="Center" 
-                  Click="OnTopCheckBox_Clicked"/>
+                  Click="OnTopCheckBoxClicked"/>
         <Button x:Name="OpenFolderDialogButton" 
                 Content="･･･" 
                 HorizontalAlignment="Left" 
@@ -62,6 +61,9 @@
                  TextWrapping="Wrap" 
                  Text="" 
                  VerticalAlignment="Top" 
-                 Width="271" TextChanged="TextBox_TextChanged"/>
+                 AllowDrop="True"
+                 Width="271" 
+                 TextChanged="TextBox_TextChanged" 
+                 Drop="FolderDragDrop" ScrollViewer.CanContentScroll="True"/>
     </Grid>
 </Window>
