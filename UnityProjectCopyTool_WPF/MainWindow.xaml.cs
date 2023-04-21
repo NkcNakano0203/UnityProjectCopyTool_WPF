@@ -57,8 +57,6 @@ namespace UnityProjectCopyTool_WPF
 
         private void OpenFolderDialogButton_Click(object sender, RoutedEventArgs e)
         {
-            // 参考記事
-            // https://threeshark3.com/commonopenfiledialog/
             using (var cofd = new CommonOpenFileDialog()
             { Title = "フォルダを選択してください", IsFolderPicker = true })
             {
@@ -68,7 +66,7 @@ namespace UnityProjectCopyTool_WPF
             }
         }
 
-        private async void CopyButton_Click(object sender, RoutedEventArgs e)
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
             // Packagesの確認
             bool includePackages = false;
@@ -79,9 +77,12 @@ namespace UnityProjectCopyTool_WPF
             string sourceFolderName = Path.GetFileName(sourceFolderPass);
 
             // コピー先になるフォルダを作成する
-            string parentFolderPath = Directory.GetParent(sourceFolderPass).FullName;
+            DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceFolderPass);
+            DirectoryInfo? parentDirectoryInfo = sourceDirectoryInfo.Parent;
+            if (parentDirectoryInfo == null) throw new DirectoryNotFoundException($"親フォルダがNULLだよ～");
+
             string newFolderName = $"{sourceFolderName}_Copy";
-            string newFolderPath = Path.Combine(parentFolderPath, newFolderName);
+            string newFolderPath = Path.Combine(parentDirectoryInfo.FullName, newFolderName);
             Directory.CreateDirectory(newFolderPath);
 
             // 子フォルダのパスを取得
@@ -102,39 +103,49 @@ namespace UnityProjectCopyTool_WPF
                     string newFolderDirectory = Path.Combine(newFolderPath, subFolderName);
                     Directory.CreateDirectory(newFolderDirectory);
 
-                     DirectoryCopy(subFolderPass, newFolderDirectory);
+                    CopyDirectory(subFolderPass, newFolderDirectory);
                 }
             }
 
-            FileCopy(sourceFolderPass, newFolderPath);
-        }
-
-        private void DirectoryCopy(string sourcePath, string destinationPath)
-        {
-            DirectoryInfo sourceDirectory = new DirectoryInfo(sourcePath);
-            //ディレクトリのコピー（再帰を使用）
-            foreach (DirectoryInfo directoryInfo in sourceDirectory.GetDirectories())
+            // プロジェクトフォルダ直下のファイルをコピー
+            if (sourceDirectoryInfo.GetFiles().Length == 0) return;
+            foreach (FileInfo file in sourceDirectoryInfo.GetFiles())
             {
-                string newFolderPath = Path.Combine(destinationPath, directoryInfo.Name);
-                Directory.CreateDirectory(newFolderPath);
-                DirectoryCopy(directoryInfo.FullName, directoryInfo.FullName);
+                string targetFilePath = Path.Combine(newFolderPath, file.Name);
+                file.CopyTo(targetFilePath);
             }
+
+            //TODO:できたら作業進捗バー表示したいよね
+            MessageBox.Show("コピー完了");
         }
 
-        private void FileCopy(string sourcePath, string destinationPath)
-        {
-            DirectoryInfo sourceDirectory = new DirectoryInfo(sourcePath);
-            DirectoryInfo destinationDirectory = new DirectoryInfo(destinationPath);
 
-            //ファイルのコピー
-            foreach (DirectoryInfo directoryInfo in sourceDirectory.GetDirectories())
+        static void CopyDirectory(string sourceDir, string destinationDir)
+        {
+            DirectoryInfo dir = new DirectoryInfo(sourceDir);
+
+            if (!dir.Exists) throw new DirectoryNotFoundException($"フォルダが見つからないよ～: {dir.FullName}");
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            Directory.CreateDirectory(destinationDir);
+
+            // ファイルやフォルダが無かったら飛ばす
+            if (dirs.Length != 0)
             {
-                foreach (FileInfo fileInfo in sourceDirectory.GetFiles())
+                foreach (DirectoryInfo subDir in dirs)
                 {
-                    string fileDirectory = Path.Combine(destinationDirectory.FullName, fileInfo.Name);
-                    fileInfo.CopyTo(fileDirectory, true);
+                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+                    CopyDirectory(subDir.FullName, newDestinationDir);
                 }
-                FileCopy(directoryInfo.FullName, directoryInfo.FullName);
+            }
+
+            if (dir.GetFiles().Length != 0)
+            {
+                foreach (FileInfo file in dir.GetFiles())
+                {
+                    string targetFilePath = Path.Combine(destinationDir, file.Name);
+                    file.CopyTo(targetFilePath);
+                }
             }
         }
 
