@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -14,7 +16,7 @@ namespace UnityProjectCopyTool_WPF
         {
             "Assets","Library","Packages","ProjectSettings"
         };
-        const int PackagesNumber = 2;
+        const int LibraryNumber = 1;
 
         public MainWindow()
         {
@@ -40,7 +42,7 @@ namespace UnityProjectCopyTool_WPF
 
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             // ドロップされたフォルダのパスを保持
-            SelectFolderAddressTextBox.Text = files[0];
+            SelectFolderPathTextBox.Text = files[0];
         }
 
         private bool IsDroppedItemFolder(IDataObject data)
@@ -59,23 +61,29 @@ namespace UnityProjectCopyTool_WPF
             {
                 if (cofd.ShowDialog() != CommonFileDialogResult.Ok) return;
                 // 選択されたフォルダ名を保持
-                SelectFolderAddressTextBox.Text = cofd.FileName;
+                SelectFolderPathTextBox.Text = cofd.FileName;
             }
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            CopyButton.IsEnabled = SelectFolderAddressTextBox.Text != null;
+            CopyButton.IsEnabled = SelectFolderPathTextBox.Text != null;
         }
 
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        private async void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            // Packagesの確認
-            bool includePackages = false;
-            if (IncludePackagesCheckBox.IsChecked != null)
-            { includePackages = (bool)IncludePackagesCheckBox.IsChecked; }
+            // Libraryの確認
+            bool includeLibrary = false;
+            if (IncludeLibraryCheckBox.IsChecked != null)
+            { includeLibrary = (bool)IncludeLibraryCheckBox.IsChecked; }
 
-            string sourceFolderPass = SelectFolderAddressTextBox.Text;
+            string SelectFolderPass = SelectFolderPathTextBox.Text;
+
+            await Task.Run(() => Copy(includeLibrary, SelectFolderPass));
+        }
+
+        void Copy(bool includeLibrary, string sourceFolderPass)
+        {
             string sourceFolderName = Path.GetFileName(sourceFolderPass);
 
             // コピー先になるフォルダを作成する
@@ -89,16 +97,19 @@ namespace UnityProjectCopyTool_WPF
 
             // 子フォルダのパスを取得
             string[] subFolderPassArray = Directory.GetDirectories(sourceFolderPass);
+            int progressValue = 0;
             foreach (string subFolderPass in subFolderPassArray)
             {
+                progressValue++;
+                CopyProgressBar.Value = progressValue;
                 string subFolderName = Path.GetFileName(subFolderPass);
                 foreach (var item in copyFolderNames)
                 {
                     // フォルダ名で識別してコピーする
                     if (subFolderName != item) continue;
-                    if (subFolderName == copyFolderNames[PackagesNumber])
+                    if (subFolderName == copyFolderNames[LibraryNumber])
                     {
-                        if (!includePackages) continue;
+                        if (!includeLibrary) continue;
                     }
                     //新しく作成したフォルダにAssets,Library...のコピー
                     string newFolderDirectory = Path.Combine(newFolderPath, subFolderName);
