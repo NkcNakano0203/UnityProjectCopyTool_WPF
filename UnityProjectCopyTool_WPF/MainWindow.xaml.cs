@@ -101,7 +101,7 @@ namespace UnityProjectCopyTool_WPF
             foreach (string subFolderPass in subFolderPassArray)
             {
                 progressValue++;
-                CopyProgressBar.Value = progressValue;
+                //CopyProgressBar.Value = progressValue;
                 string subFolderName = Path.GetFileName(subFolderPass);
                 foreach (var item in copyFolderNames)
                 {
