@@ -14,9 +14,8 @@ namespace UnityProjectCopyTool_WPF
     {
         readonly string[] copyFolderNames =
         {
-            "Assets","Library","Packages","ProjectSettings"
+            "Assets","Packages","ProjectSettings"
         };
-        const int LibraryNumber = 1;
 
         public MainWindow()
         {
@@ -49,20 +48,23 @@ namespace UnityProjectCopyTool_WPF
         {
             // ドロップされたアイテムがフォルダか
             if (!data.GetDataPresent(DataFormats.FileDrop)) return true;
+            // ドロップされたアイテムが1つか
             if (((string[])data.GetData(DataFormats.FileDrop)).Length == 1) return true;
+            // ファイルが存在するか
             if (Directory.Exists(((string[])data.GetData(DataFormats.FileDrop))[0])) return true;
             return false;
         }
 
         private void OpenFolderDialogButton_Click(object sender, RoutedEventArgs e)
         {
-            using (var cofd = new CommonOpenFileDialog()
-            { Title = "フォルダを選択してください", IsFolderPicker = true })
+            using CommonOpenFileDialog cofd = new()
             {
-                if (cofd.ShowDialog() != CommonFileDialogResult.Ok) return;
-                // 選択されたフォルダ名を保持
-                SelectFolderPathTextBox.Text = cofd.FileName;
-            }
+                Title = "フォルダを選択してください",
+                IsFolderPicker = true
+            };
+            if (cofd.ShowDialog() != CommonFileDialogResult.Ok) return;
+            // 選択されたフォルダ名を保持
+            SelectFolderPathTextBox.Text = cofd.FileName;
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -72,24 +74,21 @@ namespace UnityProjectCopyTool_WPF
 
         private async void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            // Libraryの確認
-            bool includeLibrary = false;
-            if (IncludeLibraryCheckBox.IsChecked != null)
-            { includeLibrary = (bool)IncludeLibraryCheckBox.IsChecked; }
-
             string SelectFolderPass = SelectFolderPathTextBox.Text;
 
-            await Task.Run(() => Copy(includeLibrary, SelectFolderPass));
+            await Task.Run(() => Copy(SelectFolderPass));
         }
 
-        void Copy(bool includeLibrary, string sourceFolderPass)
+        void Copy(string sourceFolderPass)
         {
             string sourceFolderName = Path.GetFileName(sourceFolderPass);
 
             // コピー先になるフォルダを作成する
-            DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceFolderPass);
-            DirectoryInfo? parentDirectoryInfo = sourceDirectoryInfo.Parent;
-            if (parentDirectoryInfo == null) throw new DirectoryNotFoundException($"親フォルダがNULLだよ～");
+            DirectoryInfo sourceDirectoryInfo = new(sourceFolderPass);
+
+            DirectoryInfo? parentDirectoryInfo =
+                sourceDirectoryInfo.Parent ??
+                throw new DirectoryNotFoundException($"親フォルダがNULLだよ～");
 
             string newFolderName = $"{sourceFolderName}_Copy";
             string newFolderPath = Path.Combine(parentDirectoryInfo.FullName, newFolderName);
@@ -107,10 +106,6 @@ namespace UnityProjectCopyTool_WPF
                 {
                     // フォルダ名で識別してコピーする
                     if (subFolderName != item) continue;
-                    if (subFolderName == copyFolderNames[LibraryNumber])
-                    {
-                        if (!includeLibrary) continue;
-                    }
                     //新しく作成したフォルダにAssets,Library...のコピー
                     string newFolderDirectory = Path.Combine(newFolderPath, subFolderName);
                     Directory.CreateDirectory(newFolderDirectory);
@@ -133,11 +128,14 @@ namespace UnityProjectCopyTool_WPF
 
         private void CopyDirectory(string sourcePath, string destinationPath)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo(sourcePath);
+            DirectoryInfo sourceDirectory = new(sourcePath);
 
-            if (!sourceDir.Exists) throw new DirectoryNotFoundException($"フォルダが見つからないよ～: {sourceDir.FullName}");
+            if (!sourceDirectory.Exists)
+            {
+                throw new DirectoryNotFoundException($"フォルダが見つかりませんでした: {sourceDirectory.FullName}");
+            }
 
-            DirectoryInfo[] dirs = sourceDir.GetDirectories();
+            DirectoryInfo[] dirs = sourceDirectory.GetDirectories();
             Directory.CreateDirectory(destinationPath);
 
             // ファイルやフォルダが無かったら飛ばす
@@ -149,8 +147,8 @@ namespace UnityProjectCopyTool_WPF
                     CopyDirectory(subDir.FullName, newDestinationDir);
                 }
             }
-            if (sourceDir.GetFiles().Length == 0) return;
-            foreach (FileInfo file in sourceDir.GetFiles())
+            if (sourceDirectory.GetFiles().Length == 0) return;
+            foreach (FileInfo file in sourceDirectory.GetFiles())
             {
                 string targetFilePath = Path.Combine(destinationPath, file.Name);
                 file.CopyTo(targetFilePath);
